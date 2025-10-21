@@ -1,0 +1,65 @@
+# 工作流的名称，会在 GitHub 的 Actions 标签页中显示
+name: CI
+
+# 定义触发工作流执行的事件（即：什么时候运行这个自动化流程）
+on:
+  # 当向指定分支推送代码时触发
+  push:
+    branches: [ "main" ]  # 仅当推送到 main 分支时触发
+
+  # 当创建或更新针对 main 分支的 Pull Request 时触发
+  pull_request:
+    branches: [ "main" ]
+
+  # 允许通过 GitHub 界面手动触发此工作流（Actions 页面中点击 "Run workflow"）
+  workflow_dispatch:
+
+# 定义一个或多个作业（job），一个 workflow 可以包含多个 job
+jobs:
+  # 作业名称：build（你可以自定义，如 deploy、test 等）
+  build:
+
+    # 指定运行此作业的虚拟环境（GitHub 托管的运行器）
+    # ubuntu-latest 表示使用最新的 Ubuntu 系统
+    runs-on: ubuntu-latest
+
+    # 该作业包含的一系列步骤（steps），按顺序执行
+    steps:
+
+      # 第一步：检出代码
+      # 使用官方提供的 actions/checkout 动作
+      # 作用：将当前仓库的代码克隆到运行器（runner）上
+      # 这是大多数工作流的第一步，否则后续步骤无法访问代码
+      - uses: actions/checkout@v4
+
+      # 第二步：设置 Node.js 环境
+      # 使用 actions/setup-node 动作来安装指定版本的 Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          # 指定要安装的 Node.js 版本
+          node-version: 20  # 使用 Node.js 20
+
+      # 第三步：安装项目依赖
+      # 运行 shell 命令：使用 npm ci 安装依赖
+      # npm ci 会根据 package-lock.json 精确安装依赖，比 npm install 更快、更稳定
+      # 非常适合 CI/CD 环境
+      - name: Install Dependencies
+        run: npm ci
+
+      # 第四步：构建项目
+      # 运行项目的构建脚本（通常在 package.json 中定义为 "build"）
+      # 构建完成后，静态文件通常会输出到 dist/ 目录
+      - name: Build site
+        run: npm run build
+
+      # 第五步：部署到 GitHub Pages
+      # 使用第三方动作 peaceiris/actions-gh-pages 将构建结果部署到 GitHub Pages
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          # 使用 GitHub 自动生成的令牌（token）进行身份验证
+          # 无需手动配置，具备向当前仓库推送的权限
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+          
