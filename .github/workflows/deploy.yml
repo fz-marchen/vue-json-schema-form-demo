@@ -61,5 +61,8 @@ jobs:
           # 使用 GitHub 自动生成的令牌（token）进行身份验证
           # 无需手动配置，具备向当前仓库推送的权限
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist  # 必须添加！指定构建后的静态资源目录
+          publish_branch: gh-pages  # 明确部署到 gh-pages 分支（自动创建）
+          force_orphan: true  # 可选：清理分支历史，确保内容最新
 
           
